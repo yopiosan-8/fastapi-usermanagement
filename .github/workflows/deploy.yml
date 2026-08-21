@@ -1,0 +1,44 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  SECRET_KEY: "test-secret-key"
+  SQLALCHEMY_DATABASE_URL: "sqlite:///./test.db"
+  AWS_REGION: ap-northeast-1
+  ECS_CLUSTER: watanabe-fastapi-cluster
+  ECS_SERVICE: watanabe-fastapi
+  ECR_REPOSITORY: watanabe-fastapi
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run tests
+        run: uv run pytest tests/test_user.py
+  
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6

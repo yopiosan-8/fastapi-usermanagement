@@ -1,17 +1,17 @@
-name: Unit Test
+name: ci
 
 on:
   pull_request:
     branches:
       - main
 
+env:
+  SECRET_KEY: "test-secret-key"
+  SQLALCHEMY_DATABASE_URL: "sqlite:///./test.db"
+
 jobs:
   test:
     runs-on: ubuntu-latest
-
-    env:
-      SECRET_KEY: "test-secret-key"
-      SQLALCHEMY_DATABASE_URL: "sqlite:///./test.db"
 
     steps:
       - name: Checkout repository
