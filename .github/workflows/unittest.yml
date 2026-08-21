@@ -9,6 +9,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      SECRET_KEY: "308e916077ae69bee900c19348c150e20f2dca5d870cd26bdd527a5291e41ec4"
+      SQLALCHEMY_DATABASE_URL: "postgresql://fastapiuser:fastapipass@watanabe-user-management.cuf82id02mnx.ap-northeast-1.rds.amazonaws.com:5432/usermanagement"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
