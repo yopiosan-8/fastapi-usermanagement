@@ -12,6 +12,7 @@ env:
   ECS_CLUSTER: watanabe-fastapi-cluster
   ECS_SERVICE: watanabe-fastapi
   ECR_REPOSITORY: watanabe-fastapi
+  ECS_TASK_DEFINITION_API: fastapi-usermanagement/.aws/task-def-api.json
 
 permissions:
   id-token: write
@@ -40,7 +41,7 @@ jobs:
         run: uv run pytest tests/test_user.py
   
 
-  deploy:
+  build:
     needs: test
     runs-on: ubuntu-latest
 
@@ -67,3 +68,53 @@ jobs:
         run: |
           docker image tag temp_usermanagement_api_image:latest $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
           docker image push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          echo $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} > api-image-uri.txt
+      
+      - name: Upload the image uri file as an artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: api-image-uri
+          path: fastapi-usermanagement/api/api-image-uri.txt
+  
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      
+      - name: Download the artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: api-image-uri
+          path: artifacts
+      
+      - name: Define the image URI
+        run: |
+          echo "API_IMAGE_URI=$(cat artifacts/api-image-uri.txt)" >> $GITHUB_ENV
+      
+      - name: Fill in the new image URI in the amazon ECS task definition
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION_API }}
+          container-name: api
+          image: ${{ env.API_IMAGE_URI }}
+    
+      - name: Deploy ECS task
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+          
+
+
