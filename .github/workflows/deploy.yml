@@ -71,7 +71,7 @@ jobs:
           echo $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} > api-image-uri.txt
       
       - name: Upload the image uri file as an artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: api-image-uri
           path: fastapi-usermanagement/api/api-image-uri.txt
@@ -91,7 +91,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
       
       - name: Download the artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: api-image-uri
           path: artifacts
