@@ -45,6 +45,9 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
 
+    outputs:
+      image_uri: ${{ steps.push-image.outputs.image_uri }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -63,19 +66,14 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       
       - name: Push the image to Amazon ECR
+        id: push-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          docker image tag temp_usermanagement_api_image:latest $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
-          docker image push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
-          echo $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} > api-image-uri.txt
-      
-      - name: Upload the image uri file as an artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-image-uri
-          path: api-image-uri.txt
-          if-no-files-found: error
+          IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          docker image tag temp_usermanagement_api_image:latest $IMAGE_URI
+          docker image push $IMAGE_URI
+          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
   
   deploy:
     runs-on: ubuntu-latest
@@ -91,12 +89,6 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
       
-      - name: Download the artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: api-image-uri
-          path: artifacts
-      
       - name: Define the image URI
         run: |
           echo "API_IMAGE_URI=$(cat artifacts/api-image-uri.txt)" >> $GITHUB_ENV
@@ -107,7 +99,7 @@ jobs:
         with:
           task-definition: ${{ env.ECS_TASK_DEFINITION_API }}
           container-name: api
-          image: ${{ env.API_IMAGE_URI }}
+          image: ${{ needs.build.outputs.image_uri }}
     
       - name: Deploy ECS task
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
