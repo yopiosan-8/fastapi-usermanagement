@@ -12,7 +12,7 @@ env:
   ECS_CLUSTER: watanabe-fastapi-cluster
   ECS_SERVICE: watanabe-fastapi
   ECR_REPOSITORY: watanabe-fastapi
-  ECS_TASK_DEFINITION_API: fastapi-usermanagement/.aws/task-def-api.json
+  ECS_TASK_DEFINITION_API: .aws/task-def-api.json
 
 permissions:
   id-token: write
