@@ -13,7 +13,8 @@ from app.models import User
 from app.config import get_settings
 
 ALGORITHM = "HS256"
-SECRET_KEY = get_settings().secret_key
+#SECRET_KEY = get_settings().secret_key
+SECRET_KEY = "308e916077ae69bee900c19348c150e20f2dca5d870cd26bdd527a5291e41ec4"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
