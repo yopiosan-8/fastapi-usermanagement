@@ -16,22 +16,22 @@ router = APIRouter(prefix="/users", tags=["Users"])
 async def find_all(db: DbDependency):
     return user_cruds.find_all(db)
 
-@router.get("/{id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
+@router.get("/{id}", response_model=UserResponse, status_code=status.HTTP_200_OK, description="ユーザーをID指定で検索する")
 async def find_by_id(db: DbDependency, user: UserDependency, id: int):
     found_user = user_cruds.find_by_id(db, id)
     if not found_user:
         raise HTTPException(status_code=404, detail="User not found.")
     return found_user
 
-@router.get("/", response_model=list[UserResponse], status_code=status.HTTP_200_OK)
+@router.get("/", response_model=list[UserResponse], status_code=status.HTTP_200_OK, description="ユーザーをユーザー名の部分一致で検索する")
 async def find_by_name(db: DbDependency, name: str):
     return user_cruds.find_by_name(db, name)
 
-@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED, description="ユーザーを新規作成する")
 async def create(db: DbDependency, user: UserDependency, user_create: UserCreate):
     return user_cruds.create(db, user_create)
 
-@router.put("/{id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
+@router.put("/{id}", response_model=UserResponse, status_code=status.HTTP_200_OK, description="ユーザーを情報を更新する")
 async def update(db: DbDependency, user: UserDependency, id: int, user_update: UserUpdate):
 
     if user.user_id == id:
@@ -42,7 +42,7 @@ async def update(db: DbDependency, user: UserDependency, id: int, user_update: U
         raise HTTPException(status_code=404, detail="User not updated.")
     return updated_user
 
-@router.delete("/{id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
+@router.delete("/{id}", response_model=UserResponse, status_code=status.HTTP_200_OK, description="ユーザーを削除する")
 async def delete(db: DbDependency, user: UserDependency, id: int):
 
     if user.user_id == id:
