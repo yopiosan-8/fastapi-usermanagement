@@ -12,7 +12,7 @@ UserDependency = Annotated[DecodedToken, Depends(user_cruds.get_current_user)]
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-@router.get("", response_model=list[UserResponse], status_code=status.HTTP_200_OK, description="全てのユーザーを検索する B君修正")
+@router.get("", response_model=list[UserResponse], status_code=status.HTTP_200_OK, description="全てのユーザーを検索する B君修正 A君さらに修正")
 async def find_all(db: DbDependency):
     return user_cruds.find_all(db)
 
